@@ -1,0 +1,56 @@
+Projekt zaliczeniowy - Zgadnij liczbę 2: Polimorfizm kontratakuje
+Due June 20, 2026 6:45 PM
+
+Instructions
+Projektem zaliczeniowym jest napisanie sequela gry z podstaw
+programowania czyli Zgadnij liczbę 2!
+
+Wymagania techniczne: - podejście obiektowe w С++/C#
+- jedna klasa na plik
+- obowiązkowy plik README.md z instrukcją do gry
+
+Wymagania funkcjonalne: - na ekranie powitalnym dodana została opcja
+ustawień, w którym: użytkownik może zmienić język gry (PL / EN); może
+wyczyścić listę rekordów w Hall of Fame (użytkownik musi potwierdzić tę
+opcję); przełączana opcja czy gra ma pytać o tryb zakładu lub nie
+(domyślnie może pytać). Aktualne ustawienia powinny być widoczne podczas
+przebywania na tym ekranie
+- TOP 5 zmienia nazwę w Hall of Fame, wpisy w top5 w nowej grze plus
+dodatkowo wyróżniamy na liście
+- Po wybraniu opcji nowej gry: użytkownik może wybrać grę standardową
+(Zgadnij liczbę 1) lub Nowa gra plus: oznacza, że co 6/7/8 startów gra
+będzie przelosowywała ukrytą liczbę. Tryb zakładu niedostępny.
+- Na koniec każdej gry oprócz wyniku podajemy czas trwania rozgrywki w
+sekundach, który umieszczamy we wpisie w Hall of Fame. Jeśli gracze
+uzyskali taki sam wynik, wyżej będzie ten, który zrobił to w krótszym
+czasie.
+
+Forma zaliczenia: Wrzucić kod na repozytorium w gicie i podesłać link do
+repo np. w pliku tekstowym
+
+Wymagania “Zgadnij liczbę 1”: - ekran powitalny skąd możemy:
+a) rozpocząć nową grę
+b) sprawdzić aktualne TOP5 (ta opcja jest ukryta do momentu posiadania
+przynajmniej jednej rozegranej gry)
+
+-   ekran wyników podzielony na poziomy trudności, które możemy
+    przełączać. Wyświetlamy TOP5 najlepszych na poziom trudności, gdzie
+    będziemy widzieć nazwę użytkownika i ilość prób. Z ekranu wyników
+    możemy wrócić do ekranu powitalnego
+
+-   przed rozpoczęciem gry należy wybrać jeden z poziomów trudności np.
+    łatwy (1-50), średni (1-100), trudny (1-250)
+
+-   tryb zakładu, o który zapyta gra po wybraniu poziomu trudności —
+    jeśli tak, to gracz podaje maksymalną liczbę prób w następnej
+    rozgrywce
+
+-   podczas gry na ekranie zawsze wyświetla się aktualny numer próby
+
+-   w przypadku braku podania prawidłowej liczby, na ekranie dostaniemy
+    losowy komunikat (minimalny zbiór 5 komunikatów), czyli liczba jest
+    za mała czy za duża i zostanie uruchomiona kolejna próba
+
+-   w przypadku trafienia prawidłowej liczby dostaniemy komunikat o
+    podanie swojego imienia. Po wpisaniu imienia zostaniemy
+    przekierowani do ekranu powitalnego

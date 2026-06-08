@@ -1,0 +1,29 @@
+# Build dirs
+build/
+cmake-build-*/
+
+# CMake generated
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Executables / binaries
+*.o
+*.obj
+*.a
+*.so
+*.dll
+*.exe
+*.out
+
+# Editor trash
+*.swp
+*.swo
+*~
+.cache/
+
+# Debug / sanitizer output
+core
+core.*
