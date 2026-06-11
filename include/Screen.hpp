@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <variant>
+#include <utility>
 
 
 enum class TextRole
@@ -65,7 +66,7 @@ struct Screen
         for (const auto& element : this->header)
             std::visit(visitor, element);
 
-        if (!this->header.empty())
+        if (!this->header.empty() && !this->body.empty())
             std::invoke(visitor, SpacerElement{});
 
         for (const auto& element : this->body)
