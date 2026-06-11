@@ -5,6 +5,7 @@
 #include <utility>
 #include <variant>
 
+#include "GameState.hpp"
 #include "InputHandler.hpp"
 
 
@@ -24,7 +25,7 @@ void Game::enterCurrentFrame()
 
 void Game::processTransition(FrameTransition transition)
 {
-    std::visit([this](auto&& tr){ this->applyTransition(std::move(tr)); }, std::move(transition));
+    std::visit([this](auto&& tr) { this->applyTransition(std::move(tr)); }, std::move(transition));
 }
 
 void Game::applyTransition(QuitGameTransition)
@@ -55,14 +56,6 @@ void Game::applyTransition(PushStateTransition tr)
     this->enterCurrentFrame();
 }
 
-void Game::applyTransition(PopStateTransition)
-{
-    if (this->frames.empty())
-        return;
-
-    this->frames.pop_back();
-}
-
 void Game::applyTransition(ReturnTransition tr)
 {
     if (this->frames.empty())
@@ -73,22 +66,20 @@ void Game::applyTransition(ReturnTransition tr)
     if (this->frames.empty())
         return;
     
-    auto parent = this->frames.back().returnHandler;
+    auto* parent = this->frames.back().returnHandler;
+    bool isVoid = std::any_cast<VoidReturn>(&tr.value) != nullptr;
+
     if (!parent)
-        throw std::logic_error("Parent cannot handle return value");
+    {
+        if (!isVoid)
+            throw std::logic_error("Parent cannot handle return value");
+
+        return;
+    }
 
     FrameTransition nextTransition = parent->handleReturn(std::move(tr.value));
     
     this->processTransition(std::move(nextTransition));
-}
-
-Game::Game(std::unique_ptr<GameState> initialState)
-{
-    if (!initialState)
-        throw std::logic_error("Game initialState is null");
-        
-    this->frames.emplace_back(std::move(initialState));
-    this->enterCurrentFrame();
 }
 
 void Game::run()

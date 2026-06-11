@@ -9,7 +9,10 @@ int main()
 {
     try
     {
-        Game game(std::make_unique<MainMenuState>());
+        Game game;
+
+        game.pushState<MainMenuState>();
+
         game.run();
     }
     catch (const std::exception& ex)

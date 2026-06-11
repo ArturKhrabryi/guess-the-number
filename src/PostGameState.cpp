@@ -2,6 +2,8 @@
 #include "GameState.hpp"
 #include "Screen.hpp"
 
+#include <format>
+
 
 Screen PostGameState::getScreen() const
 {
@@ -31,6 +33,7 @@ Screen PostGameState::getScreen() const
 
     Screen screen(std::move(title), std::move(footer));
     screen.header.push_back(std::move(attemptsMessageBox));
+    screen.header.push_back(TextElement{ .text = std::format("The game took {}", this->result.gameDuration) });
 
     return screen;
 }
@@ -38,12 +41,18 @@ Screen PostGameState::getScreen() const
 FrameTransition PostGameState::handleEvent(const Event& event)
 {
     if (this->result.outcome == GameplayOutcome::Defeat)
-        return PopStateTransition{};
+        return ReturnTransition{};
 
     if (event.value.empty())
         return NoneTransition{};
 
-    ReturnType gameScoreAndDifficulty = { .score = { .name = event.value, .attempts = this->result.wrongAttempts + 1 }, .difficulty = this->result.difficulty };
+    GameScore score{
+        .name = event.value,
+        .attempts = this->result.wrongAttempts + 1,
+        .gameDuration = this->result.gameDuration
+    };
 
-    return ReturnTransition{ .value = std::move(gameScoreAndDifficulty) };
+    this->getContext().hallOfFameScores.addGameScore(std::move(score), this->result.difficulty);
+
+    return ReturnTransition{};
 }

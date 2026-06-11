@@ -23,7 +23,7 @@ protected:
     virtual std::string_view getTitle() const override { return "Difficulty selection"; }
 
 public:
-    DifficultySelectionStep();
+    DifficultySelectionStep(GameContext& context);
     virtual Screen getScreen() const override;
 };
 
@@ -33,13 +33,15 @@ protected:
     virtual std::string_view getTitle() const override { return "Enabling challenge mode"; }
 
 public:
-    ChallengeModeSelectionStep();
+    ChallengeModeSelectionStep(GameContext& contex);
     virtual Screen getScreen() const override;
 };
 
 class MaxAttemptsSelectionStep final : public GameState, public ScreenState, public Returns<int>
 {
 public:
+    using GameState::GameState;
+
     virtual Screen getScreen() const override;
     virtual FrameTransition handleEvent(const Event& event) override;
 };
@@ -50,6 +52,8 @@ private:
     ReturnType options{};
 
 public:
+    using GameState::GameState;
+
     virtual FrameTransition onEnter() override;
     virtual FrameTransition handleReturn(std::any value) override;
 };

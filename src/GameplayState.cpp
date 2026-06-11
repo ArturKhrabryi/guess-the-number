@@ -5,11 +5,24 @@
 
 #include <array>
 #include <limits>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 
 
-std::string_view GameplayState::getRandomGreaterNumberPhrase() const
+std::chrono::seconds GameplayState::getElapsedTime() const
+{
+    return std::chrono::duration_cast<std::chrono::seconds>(Clock::now() - this->round.startTime);
+}
+
+int GameplayState::generateRandomNumber()
+{
+    const auto [min, max] = getRandomNumberLimits(this->options.difficulty);
+
+    return this->getContext().randomGenerator.generate(min, max);
+}
+
+std::string_view GameplayState::selectRandomGreaterNumberPhrase()
 {
     using namespace std::string_view_literals;
 
@@ -21,6 +34,7 @@ std::string_view GameplayState::getRandomGreaterNumberPhrase() const
         "The number is hiding above that"sv
     };
 
+    auto& randomGenerator = this->getContext().randomGenerator;
     static std::size_t lastIndex = std::numeric_limits<std::size_t>::max();
     auto randomPhraseIndex = randomGenerator.generate<std::size_t>(0, phrases.size() - 1);
     if constexpr (phrases.size() > 1)
@@ -34,7 +48,7 @@ std::string_view GameplayState::getRandomGreaterNumberPhrase() const
     return phrases[randomPhraseIndex];
 }
 
-std::string_view GameplayState::getRandomSmallerNumberPhrase() const
+std::string_view GameplayState::selectRandomSmallerNumberPhrase()
 {
     using namespace std::string_view_literals;
 
@@ -46,6 +60,7 @@ std::string_view GameplayState::getRandomSmallerNumberPhrase() const
         "Easy there, that's too much"sv
     };
 
+    auto& randomGenerator = this->getContext().randomGenerator;
     static std::size_t lastIndex = std::numeric_limits<std::size_t>::max();
     auto randomPhraseIndex = randomGenerator.generate<std::size_t>(0, phrases.size() - 1);
     if constexpr (phrases.size() > 1)
@@ -59,33 +74,59 @@ std::string_view GameplayState::getRandomSmallerNumberPhrase() const
     return phrases[randomPhraseIndex];
 }
 
-void GameplayState::setRandomNumber(GameplayDifficulty difficulty)
+std::string GameplayState::selectStatusMessage(GuessStatus status)
 {
-    const auto [min, max] = getRandomNumberLimits(difficulty);
-    this->randomNumber = randomGenerator.generate(min, max);
+    using enum GuessStatus;
+
+    switch (status)
+    {
+    case Invalid:
+        return "Please make a guess using a valid number";
+
+    case OutOfRange:
+        return "Do you really want to enter a number outside the difficulty's range?";
+
+    case TooSmall:
+        return std::string{ this->selectRandomGreaterNumberPhrase() };
+
+    case TooLarge:
+        return std::string{ this->selectRandomSmallerNumberPhrase() };
+    }
+
+    throw std::logic_error("Invalid GuessStatus value");
 }
 
 std::string GameplayState::constructAttemptsIndicatorText() const
 {
-    std::string attemptsIndicatorText = "Attempt #" + std::to_string(this->wrongAttempts + 1);
+    std::string attemptsIndicatorText = "Attempt #" + std::to_string(this->round.wrongAttempts + 1);
     if (this->options.maxAttempts)
         attemptsIndicatorText += "/" + std::to_string(*this->options.maxAttempts);
 
     return attemptsIndicatorText;
 }
 
-GameplayState::GameplayState(GameplayOptions options) :
-    options(options)
+FrameTransition GameplayState::finish(GameplayOutcome outcome) const
 {
-    this->setRandomNumber(this->options.difficulty);
+    return GameplayState::makeReturn(ReturnType{
+        .difficulty = this->options.difficulty,
+        .outcome = outcome,
+        .gameDuration = this->getElapsedTime(),
+        .wrongAttempts = this->round.wrongAttempts
+    });
 }
+
+GameplayState::GameplayState(GameContext& context, GameplayOptions options) :
+    GameState(context),
+    options(options),
+    round{ .targetNumber = this->generateRandomNumber() }
+{}
 
 FrameTransition GameplayState::handleEvent(const Event& event)
 {
     auto guessedNumberOptional = InputHandler::toNumber<int>(event.value);
     if (!guessedNumberOptional)
     {
-        this->statusMessage = "Invalid input";
+        this->statusMessage = this->selectStatusMessage(GuessStatus::Invalid);
 
         return NoneTransition{};
     }
@@ -95,35 +136,27 @@ FrameTransition GameplayState::handleEvent(const Event& event)
     auto randomNumberLimits = getRandomNumberLimits(this->options.difficulty);
     if (guessedNumber < randomNumberLimits.min || guessedNumber > randomNumberLimits.max)
     {
-        this->statusMessage = "Do you really want to enter a number outside the difficulty's range?";
+        this->statusMessage = this->selectStatusMessage(GuessStatus::OutOfRange);
 
         return NoneTransition{};
     }
 
-    if (guessedNumber == this->randomNumber)
-        return ReturnTransition{ .value = ReturnType{
-            .difficulty = this->options.difficulty,
-            .outcome = GameplayOutcome::Victory,
-            .wrongAttempts = this->wrongAttempts
-        } };
+    if (guessedNumber == this->round.targetNumber)
+        return this->finish(GameplayOutcome::Victory);
 
     else
     {
-        ++this->wrongAttempts;
+        ++this->round.wrongAttempts;
 
         bool isChallengeMode = this->options.maxAttempts.has_value();
-        if (isChallengeMode && this->wrongAttempts >= *this->options.maxAttempts)
-            return ReturnTransition{ .value = ReturnType{
-                .difficulty = this->options.difficulty,
-                .outcome = GameplayOutcome::Defeat,
-                .wrongAttempts = this->wrongAttempts
-            } };
+        if (isChallengeMode && this->round.wrongAttempts >= *this->options.maxAttempts)
+            return this->finish(GameplayOutcome::Defeat);
 
-        if (guessedNumber < this->randomNumber)
-            this->statusMessage = this->getRandomGreaterNumberPhrase();
+        if (guessedNumber < this->round.targetNumber)
+            this->statusMessage = this->selectStatusMessage(GuessStatus::TooSmall);
 
         else
-            this->statusMessage = this->getRandomSmallerNumberPhrase();
+            this->statusMessage = this->selectStatusMessage(GuessStatus::TooLarge);
     }
 
     return NoneTransition{};
@@ -153,7 +186,7 @@ Screen GameplayState::getScreen() const
 
 #if !defined(NDEBUG)
     screen.body.push_back(TextElement{
-        .text = std::string("Random number: ") + std::to_string(this->randomNumber),
+        .text = std::string("Random number: ") + std::to_string(this->round.targetNumber),
         .role = TextRole::Debug
     });
 #endif

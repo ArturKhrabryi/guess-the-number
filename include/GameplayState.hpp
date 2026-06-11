@@ -1,9 +1,9 @@
 #pragma once
 
 #include "GameState.hpp"
-#include "RandomGenerator.hpp"
 #include "GameTypes.hpp"
 
+#include <chrono>
 #include <string>
 #include <string_view>
 
@@ -11,24 +11,41 @@
 class GameplayState final : public GameState, public ScreenState, public Returns<GameplayResult>
 {
 private:
-    int randomNumber{};
+    using Clock = std::chrono::steady_clock;
 
-    int wrongAttempts = 0;
+    enum class GuessStatus
+    {
+        Invalid,
+        OutOfRange,
+        TooSmall,
+        TooLarge
+    };
+
+    struct Round
+    {
+        int targetNumber;
+        int wrongAttempts = 0;
+        Clock::time_point startTime = Clock::now();
+    };
+
     GameplayOptions options;
+    Round round;
 
-    std::string statusMessage{};
+    std::string statusMessage;
 
-    inline static RandomGenerator randomGenerator{};
+    std::chrono::seconds getElapsedTime() const;
 
-    void setRandomNumber(GameplayDifficulty difficulty);
+    int generateRandomNumber();
+    std::string_view selectRandomGreaterNumberPhrase();
+    std::string_view selectRandomSmallerNumberPhrase();
 
-    std::string_view getRandomGreaterNumberPhrase() const;
-    std::string_view getRandomSmallerNumberPhrase() const;
-
+    std::string selectStatusMessage(GuessStatus status);
     std::string constructAttemptsIndicatorText() const;
 
+    FrameTransition finish(GameplayOutcome outcome) const;
+
 public:
-    GameplayState(GameplayOptions options);
+    GameplayState(GameContext& context, GameplayOptions options);
 
     virtual Screen getScreen() const override;
     virtual FrameTransition handleEvent(const Event& event) override;

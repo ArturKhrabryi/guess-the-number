@@ -5,9 +5,13 @@
 #include <functional>
 #include <memory>
 #include <variant>
+#include <string>
 #include <string_view>
 #include <vector>
+#include <type_traits>
+#include <utility>
 
+#include "GameTypes.hpp"
 #include "Screen.hpp"
 #include "InputHandler.hpp"
 
@@ -27,11 +31,11 @@ struct PushStateTransition
     std::unique_ptr<GameState> nextState{}; 
 };
 
-struct PopStateTransition {};
+struct VoidReturn{};
 
 struct ReturnTransition
 {
-    std::any value{};
+    std::any value = VoidReturn{};
 };
 
 using FrameTransition = std::variant<
@@ -39,14 +43,28 @@ using FrameTransition = std::variant<
     QuitGameTransition,
     ChangeStateTransition,
     PushStateTransition,
-    PopStateTransition,
     ReturnTransition
 >;
 
 class GameState
 {
+private:
+    GameContext& context;
+
+protected:
+    GameContext& getContext() { return this->context; }
+    const GameContext& getContext() const { return this->context; }
+
+    template <typename State, typename... Args>
+    std::unique_ptr<State> makeState(Args&&... args)
+    {
+        return std::make_unique<State>(this->context, std::forward<Args>(args)...);
+    }
+
 public:
     virtual ~GameState() = default;
+
+    explicit GameState(GameContext& context) : context(context) {}
 };
 
 class ScreenState
@@ -79,8 +97,8 @@ protected:
     virtual std::string_view getFooter() const { return "Choose an option"; }
 
 public:
-    Screen getScreen() const override;
-    FrameTransition handleEvent(const Event& event) override;
+    virtual Screen getScreen() const override;
+    virtual FrameTransition handleEvent(const Event& event) override;
 };
 
 class EnterHandler
@@ -92,6 +110,9 @@ public:
 
 class ReturnHandler
 {
+protected:
+    static bool isVoid(const std::any& value) noexcept;
+
 public:
     virtual ~ReturnHandler() = default;
     virtual FrameTransition handleReturn(std::any value) = 0;

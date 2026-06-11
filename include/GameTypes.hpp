@@ -1,5 +1,8 @@
 #pragma once
 
+#include "RandomGenerator.hpp"
+
+#include <chrono>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -108,20 +111,21 @@ enum class GameplayOutcome
 
     switch (outcome)
     {
-    case GameplayOutcome::Victory:
+    case Victory:
         return "Victory";
 
-    case GameplayOutcome::Defeat:
+    case Defeat:
         return "Defeat";
     }
 
-    throw std::invalid_argument("invalid GameplayDifficulty value");
+    throw std::invalid_argument("invalid GameplayOutcome value");
 }
 
 struct GameplayResult
 {
     GameplayDifficulty difficulty;
     GameplayOutcome outcome;
+    std::chrono::seconds gameDuration;
     int wrongAttempts;
 };
 
@@ -129,14 +133,25 @@ struct GameScore
 {
     std::string name;
     int attempts;
+    std::chrono::seconds gameDuration;
 };
 
-struct GameScoreAndDifficulty
-{
-    GameScore score;
-    GameplayDifficulty difficulty;
-};
-
-[[nodiscard]] constexpr std::string_view toString(GameplayOutcome outcome);
 using GameScores = std::vector<GameScore>;
-using GameScoresByDifficulty = std::array<GameScores, getDifficultyCount()>;
+
+class HallOfFameScores
+{
+private:
+    std::array<GameScores, getDifficultyCount()> scores{};
+
+public:
+    void addGameScore(GameScore score, GameplayDifficulty difficulty);
+    const GameScores& getGameScores(GameplayDifficulty difficulty) const;
+    bool isEmpty() const;
+    bool isEmpty(GameplayDifficulty difficulty) const;
+};
+
+struct GameContext
+{
+    RandomGenerator randomGenerator{};
+    HallOfFameScores hallOfFameScores;
+};

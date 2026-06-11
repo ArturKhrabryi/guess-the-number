@@ -35,7 +35,7 @@ auto DifficultySelectionStep::constructDifficultyItems() -> std::vector<Difficul
     return res;
 }
 
-DifficultySelectionStep::DifficultySelectionStep()
+DifficultySelectionStep::DifficultySelectionStep(GameContext& context) : GameState(context)
 {
     auto difficultyItems = this->constructDifficultyItems();
     for (auto& difficultyItem : difficultyItems)
@@ -60,7 +60,7 @@ Screen DifficultySelectionStep::getScreen() const
     return screen;
 }
 
-ChallengeModeSelectionStep::ChallengeModeSelectionStep()
+ChallengeModeSelectionStep::ChallengeModeSelectionStep(GameContext& context) : GameState(context)
 {
     this->addMenuItem(MenuItem{
         .text = "No",
@@ -113,36 +113,36 @@ FrameTransition MaxAttemptsSelectionStep::handleEvent(const Event& event)
     if (maxAttempts <= 0)
         return NoneTransition{};
 
-    return makeReturn(maxAttempts);
+    return MaxAttemptsSelectionStep::makeReturn(maxAttempts);
 }
 
 FrameTransition OptionsSelectionState::onEnter()
 {
-    return PushStateTransition{ .nextState = std::make_unique<DifficultySelectionStep>() };
+    return PushStateTransition{ .nextState = this->makeState<DifficultySelectionStep>() };
 }
 
 FrameTransition OptionsSelectionState::handleReturn(std::any value)
 {
-    if (auto difficulty = std::any_cast<DifficultySelectionStep::ReturnType>(&value))
+    if (auto* difficulty = std::any_cast<DifficultySelectionStep::ReturnType>(&value))
     {
         this->options.difficulty = *difficulty; 
         
-        return PushStateTransition{ .nextState = std::make_unique<ChallengeModeSelectionStep>() };
+        return PushStateTransition{ .nextState = this->makeState<ChallengeModeSelectionStep>() };
     }
 
-    if (auto isChallengeMode = std::any_cast<ChallengeModeSelectionStep::ReturnType>(&value))
+    if (auto* isChallengeMode = std::any_cast<ChallengeModeSelectionStep::ReturnType>(&value))
     {
         if (*isChallengeMode)
-            return PushStateTransition{ .nextState = std::make_unique<MaxAttemptsSelectionStep>() };
+            return PushStateTransition{ .nextState = this->makeState<MaxAttemptsSelectionStep>() };
 
-        return makeReturn(this->options);
+        return OptionsSelectionState::makeReturn(this->options);
     }
 
-    if (auto maxAttempts = std::any_cast<MaxAttemptsSelectionStep::ReturnType>(&value))
+    if (auto* maxAttempts = std::any_cast<MaxAttemptsSelectionStep::ReturnType>(&value))
     {
         this->options.maxAttempts = *maxAttempts;     
 
-        return makeReturn(this->options);
+        return OptionsSelectionState::makeReturn(this->options);
     }
 
     throw std::logic_error("Unknown return type");

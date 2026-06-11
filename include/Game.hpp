@@ -2,8 +2,10 @@
 
 #include <memory>
 #include <vector>
+#include <utility>
 
 #include "GameState.hpp"
+#include "GameTypes.hpp"
 #include "Renderer.hpp"
 
 
@@ -11,6 +13,8 @@ class Game
 {
 private:
     using FramesStack = std::vector<StateFrame>;
+
+    GameContext context{};
 
     FramesStack frames;
     Renderer renderer;
@@ -22,11 +26,16 @@ private:
     void applyTransition(QuitGameTransition);
     void applyTransition(ChangeStateTransition tr);
     void applyTransition(PushStateTransition tr);
-    void applyTransition(PopStateTransition);
     void applyTransition(ReturnTransition tr);
 
 public:
-    Game(std::unique_ptr<GameState> initialState);
-
     void run();
+
+    template <typename State, typename... Args>
+    void pushState(Args&&... args)
+    {
+        this->frames.emplace_back(std::make_unique<State>(this->context, std::forward<Args>(args)...));
+
+        this->enterCurrentFrame();
+    }
 };
