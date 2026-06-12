@@ -2,46 +2,21 @@
 
 #include <charconv>
 #include <optional>
-#include <string>
-#include <iostream>
 #include <string_view>
-#include <variant>
+#include <string>
 #include <concepts>
 #include <system_error>
-#include <algorithm>
-#include <cctype>
 
+#include "Event.hpp"
 
-struct Event
-{
-    std::string value; 
-};
-
-struct EndOfInput {};
-
-using InputResult = std::variant<Event, EndOfInput>;
 
 class InputHandler
 {
 private:
-    static void trim(std::string& str)
-    {
-        auto isNotSpace = [](unsigned char ch) { return !std::isspace(ch); };
-        str.erase(str.begin(), std::find_if(str.begin(), str.end(), isNotSpace));
-        str.erase(std::find_if(str.rbegin(), str.rend(), isNotSpace).base(), str.end());
-    }
+    static void trim(std::string& str);
 
 public:
-    static InputResult readEvent()
-    { 
-        std::string line;
-        if (!std::getline(std::cin, line))
-            return EndOfInput{};
-
-        trim(line);
-
-        return Event{ .value = std::move(line) };
-    }
+    static InputResult readEvent();
 
     template <typename T>
     requires (std::integral<T> || std::floating_point<T>)

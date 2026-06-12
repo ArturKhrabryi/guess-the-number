@@ -1,6 +1,6 @@
 #include "HallOfFameState.hpp"
-#include "GameState.hpp"
-#include "GameTypes.hpp"
+#include "GameContext.hpp"
+#include "HallOfFameScores.hpp"
 #include "Screen.hpp"
 
 #include <string>

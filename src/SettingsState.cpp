@@ -1,31 +1,32 @@
 #include "SettingsState.hpp"
-#include "GameState.hpp"
-#include "GameTypes.hpp"
+#include "GameContext.hpp"
+#include "HallOfFameScores.hpp"
 #include "Screen.hpp"
+#include "Settings.hpp"
 
 #include <format>
 #include <stdexcept>
 
 
-HallOfFameDeleteonConfirmationStep::HallOfFameDeleteonConfirmationStep(GameContext& context) :
+HallOfFameClearConfirmationStep::HallOfFameClearConfirmationStep(GameContext& context) :
     GameState(context)
 {
     this->addMenuItem(MenuItem{
         .text = "No",
         .handler = [] {
-            return HallOfFameDeleteonConfirmationStep::makeReturn(false);
+            return HallOfFameClearConfirmationStep::makeReturn(false);
         }        
     });
 
     this->addMenuItem(MenuItem{
         .text = "Yes",
         .handler = [] {
-            return HallOfFameDeleteonConfirmationStep::makeReturn(true);
+            return HallOfFameClearConfirmationStep::makeReturn(true);
         }        
     });
 }
 
-Screen HallOfFameDeleteonConfirmationStep::getScreen() const
+Screen HallOfFameClearConfirmationStep::getScreen() const
 {
     auto screen = MenuScreenState::getScreen();
 
@@ -61,7 +62,7 @@ SettingsState::SettingsState(GameContext& context) : GameState(context)
     this->addMenuItem(MenuItem{
         .text = "Clear hall of fame",
         .handler = [this] {
-            return PushStateTransition{ .nextState = this->makeState<HallOfFameDeleteonConfirmationStep>() };
+            return PushStateTransition{ .nextState = this->makeState<HallOfFameClearConfirmationStep>() };
         }
     });
 
@@ -87,7 +88,7 @@ FrameTransition SettingsState::handleReturn(std::any value)
 {
     this->statusMessage.clear();
 
-    if (auto* definitelyDelete = std::any_cast<HallOfFameDeleteonConfirmationStep::ReturnType>(&value))
+    if (auto* definitelyDelete = std::any_cast<HallOfFameClearConfirmationStep::ReturnType>(&value))
     {
         if (*definitelyDelete)
         {

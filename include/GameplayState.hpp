@@ -1,7 +1,8 @@
 #pragma once
 
 #include "GameState.hpp"
-#include "GameTypes.hpp"
+#include "StateInterfaces.hpp"
+#include "GameplayTypes.hpp"
 
 #include <chrono>
 #include <string>

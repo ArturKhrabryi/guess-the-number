@@ -1,8 +1,8 @@
 #pragma once
 
 #include "GameState.hpp"
-#include "GameTypes.hpp"
-
+#include "GameplayTypes.hpp"
+#include "StateInterfaces.hpp"
 
 class PostGameState final : public GameState, public ScreenState
 {

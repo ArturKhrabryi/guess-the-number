@@ -1,10 +1,15 @@
 #pragma once
 
 #include "GameState.hpp"
-#include "GameTypes.hpp"
+#include "StateInterfaces.hpp"
+#include "MenuScreenState.hpp"
+#include "GameplayDifficulty.hpp"
+#include "GameplayTypes.hpp"
 
 #include <string>
+#include <string_view>
 #include <vector>
+#include <any>
 
 
 class DifficultySelectionStep final : public GameState, public MenuScreenState, public Returns<GameplayDifficulty>

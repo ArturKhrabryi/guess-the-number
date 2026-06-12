@@ -1,7 +1,10 @@
 #pragma once
 
-#include "Screen.hpp"
 
+struct Screen;
+struct TextElement;
+struct MenuElement;
+struct SpacerElement;
 
 class Renderer
 {

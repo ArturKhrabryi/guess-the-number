@@ -4,8 +4,12 @@
 #include <vector>
 #include <utility>
 
-#include "GameState.hpp"
-#include "GameTypes.hpp"
+#include "StateFrame.hpp"
+#include "FrameTransition.hpp"
+#include "Settings.hpp"
+#include "HallOfFameScores.hpp"
+#include "RandomGenerator.hpp"
+#include "GameContext.hpp"
 #include "Renderer.hpp"
 
 
@@ -14,7 +18,15 @@ class Game
 private:
     using FramesStack = std::vector<StateFrame>;
 
-    GameContext context{};
+    Settings settings{};
+    HallOfFameScores hallOfFameScores{};
+    RandomGenerator randomGenerator{};
+
+    GameContext context{
+        settings,
+        hallOfFameScores,
+        randomGenerator
+    };
 
     FramesStack frames;
     Renderer renderer;

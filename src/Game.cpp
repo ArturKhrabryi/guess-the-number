@@ -5,8 +5,9 @@
 #include <utility>
 #include <variant>
 
-#include "GameState.hpp"
 #include "InputHandler.hpp"
+#include "Screen.hpp"
+#include "StateInterfaces.hpp"
 
 
 void Game::enterCurrentFrame()

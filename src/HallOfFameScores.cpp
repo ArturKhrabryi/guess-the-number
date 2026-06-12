@@ -1,7 +1,8 @@
-#include "GameTypes.hpp"
+#include "HallOfFameScores.hpp"
 
 #include <algorithm>
 #include <tuple>
+#include <utility>
 
 
 void HallOfFameScores::addGameScore(GameScore score, GameplayDifficulty difficulty)

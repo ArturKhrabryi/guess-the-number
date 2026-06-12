@@ -1,8 +1,8 @@
 #include "OptionsSelectionState.hpp"
-#include "GameState.hpp"
-#include "GameTypes.hpp"
+#include "GameContext.hpp"
 #include "InputHandler.hpp"
 #include "Screen.hpp"
+#include "Settings.hpp"
 
 #include <cstddef>
 #include <format>

@@ -1,22 +1,13 @@
-#include "GameState.hpp"
-#include "InputHandler.hpp"
+#include "MenuScreenState.hpp"
+
 #include "Screen.hpp"
+#include "InputHandler.hpp"
 
-#include <stdexcept>
+#include <vector>
+#include <string>
+#include <cstddef>
+#include <utility>
 
-
-StateFrame::StateFrame(std::unique_ptr<GameState> state) :
-    state(std::move(state))
-{
-    if (!this->state)
-        throw std::logic_error("StateFrame contains null state");
-
-    auto statePtr = this->state.get();
-
-    this->screenState = dynamic_cast<ScreenState*>(statePtr);
-    this->enterHandler = dynamic_cast<EnterHandler*>(statePtr);
-    this->returnHandler = dynamic_cast<ReturnHandler*>(statePtr);
-}
 
 Screen MenuScreenState::getScreen() const
 {
@@ -62,9 +53,4 @@ FrameTransition MenuScreenState::handleEvent(const Event& event)
     }
 
     return NoneTransition{};
-}
-
-bool ReturnHandler::isVoid(const std::any& value) noexcept
-{
-    return std::any_cast<VoidReturn>(&value) != nullptr;
 }

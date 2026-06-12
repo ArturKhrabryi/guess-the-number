@@ -1,8 +1,11 @@
 #pragma once
 
 #include <string_view>
+#include <any>
 
 #include "GameState.hpp"
+#include "StateInterfaces.hpp"
+#include "MenuScreenState.hpp"
 
 
 class MainMenuState final : public GameState, public MenuScreenState, public ReturnHandler

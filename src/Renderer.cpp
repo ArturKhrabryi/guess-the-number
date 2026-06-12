@@ -1,5 +1,7 @@
 #include "Renderer.hpp"
 
+#include "Screen.hpp"
+
 #include <iostream>
 
 

@@ -1,7 +1,7 @@
 #include "GameplayState.hpp"
-#include "GameState.hpp"
-#include "GameTypes.hpp"
+#include "GameContext.hpp"
 #include "InputHandler.hpp"
+#include "RandomGenerator.hpp"
 #include "Screen.hpp"
 
 #include <array>

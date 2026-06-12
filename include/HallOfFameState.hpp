@@ -1,7 +1,12 @@
 #pragma once
 
 #include "GameState.hpp"
-#include "GameTypes.hpp"
+#include "StateInterfaces.hpp"
+#include "GameplayDifficulty.hpp"
+#include "MenuScreenState.hpp"
+
+#include <any>
+#include <string_view>
 
 
 class HallOfFameDifficultySelectionState final : public GameState, public MenuScreenState, public Returns<GameplayDifficulty>

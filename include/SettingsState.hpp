@@ -1,18 +1,21 @@
 #pragma once
 
 #include "GameState.hpp"
-#include "GameTypes.hpp"
+#include "MenuScreenState.hpp"
+#include "StateInterfaces.hpp"
+
 #include <string>
 #include <string_view>
+#include <any>
 
 
-class HallOfFameDeleteonConfirmationStep final : public GameState, public MenuScreenState, public Returns<bool> 
+class HallOfFameClearConfirmationStep final : public GameState, public MenuScreenState, public Returns<bool> 
 {
 protected:
     virtual std::string_view getTitle() const override { return "Hall of fame deleteon confirmation"; }
 
 public:
-    HallOfFameDeleteonConfirmationStep(GameContext& context);
+    HallOfFameClearConfirmationStep(GameContext& context);
 
     virtual Screen getScreen() const override;
 };

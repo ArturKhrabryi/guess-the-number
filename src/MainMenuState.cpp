@@ -1,6 +1,6 @@
 #include "MainMenuState.hpp"
-#include "GameState.hpp"
-#include "GameTypes.hpp"
+#include "GameContext.hpp"
+#include "HallOfFameScores.hpp"
 #include "OptionsSelectionState.hpp"
 #include "PostGameState.hpp"
 #include "HallOfFameState.hpp"

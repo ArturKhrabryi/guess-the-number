@@ -1,6 +1,7 @@
 #include "PostGameState.hpp"
-#include "GameState.hpp"
-#include "GameTypes.hpp"
+#include "Event.hpp"
+#include "GameContext.hpp"
+#include "HallOfFameScores.hpp"
 #include "Screen.hpp"
 
 #include <format>
