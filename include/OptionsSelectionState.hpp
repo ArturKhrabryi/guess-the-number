@@ -27,13 +27,23 @@ public:
     virtual Screen getScreen() const override;
 };
 
+class GameplayModeSelectionStep final : public GameState, public MenuScreenState, public Returns<GameplayMode>
+{
+protected:
+    virtual std::string_view getTitle() const override { return "Game mode selection"; }
+
+public:
+    GameplayModeSelectionStep(GameContext& context);
+    virtual Screen getScreen() const override;
+};
+
 class ChallengeModeSelectionStep final : public GameState, public MenuScreenState, public Returns<bool>
 {
 protected:
     virtual std::string_view getTitle() const override { return "Enabling challenge mode"; }
 
 public:
-    ChallengeModeSelectionStep(GameContext& contex);
+    ChallengeModeSelectionStep(GameContext& context);
     virtual Screen getScreen() const override;
 };
 

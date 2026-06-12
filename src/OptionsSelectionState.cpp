@@ -60,6 +60,34 @@ Screen DifficultySelectionStep::getScreen() const
     return screen;
 }
 
+GameplayModeSelectionStep::GameplayModeSelectionStep(GameContext& context) : GameState(context)
+{
+    this->addMenuItem(MenuItem{
+        .text = "Standard mode",
+        .handler = [] {
+            return GameplayModeSelectionStep::makeReturn(GameplayMode{ StandardMode{} });
+        }
+    });
+
+    this->addMenuItem(MenuItem{
+        .text = "New game plus",
+        .handler = [] {
+            return GameplayModeSelectionStep::makeReturn(GameplayMode{ NewGamePlusMode{} });
+        }
+    });
+}
+
+Screen GameplayModeSelectionStep::getScreen() const
+{
+    auto screen = MenuScreenState::getScreen();
+
+    screen.header.push_back(TextElement{
+        .text = "Which game mode do you want to play?"
+    });
+
+    return screen;
+}
+
 ChallengeModeSelectionStep::ChallengeModeSelectionStep(GameContext& context) : GameState(context)
 {
     this->addMenuItem(MenuItem{
@@ -127,7 +155,17 @@ FrameTransition OptionsSelectionState::handleReturn(std::any value)
     {
         this->options.difficulty = *difficulty; 
         
-        return PushStateTransition{ .nextState = this->makeState<ChallengeModeSelectionStep>() };
+        return PushStateTransition{ .nextState = this->makeState<GameplayModeSelectionStep>() };
+    }
+
+    if (auto* gameMode = std::any_cast<GameplayModeSelectionStep::ReturnType>(&value))
+    {
+        this->options.mode = *gameMode;
+        
+        if (std::holds_alternative<StandardMode>(*gameMode))
+            return PushStateTransition{ .nextState = this->makeState<ChallengeModeSelectionStep>() };
+
+        return OptionsSelectionState::makeReturn(this->options);
     }
 
     if (auto* isChallengeMode = std::any_cast<ChallengeModeSelectionStep::ReturnType>(&value))
@@ -140,7 +178,7 @@ FrameTransition OptionsSelectionState::handleReturn(std::any value)
 
     if (auto* maxAttempts = std::any_cast<MaxAttemptsSelectionStep::ReturnType>(&value))
     {
-        this->options.maxAttempts = *maxAttempts;     
+        std::get<StandardMode>(this->options.mode).maxAttempts = *maxAttempts;
 
         return OptionsSelectionState::makeReturn(this->options);
     }

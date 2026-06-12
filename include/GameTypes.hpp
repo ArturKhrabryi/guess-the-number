@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <variant>
 #include <vector>
 #include <array>
 #include <cstddef>
@@ -20,6 +21,15 @@ enum class GameplayDifficulty
 
     Count
 };
+
+struct StandardMode
+{
+    std::optional<int> maxAttempts;
+};
+
+struct NewGamePlusMode {};
+
+using GameplayMode = std::variant<StandardMode, NewGamePlusMode>;
 
 [[nodiscard]] constexpr std::size_t getDifficultyCount()
 {
@@ -96,7 +106,7 @@ struct RandomNumberLimits
 struct GameplayOptions
 {
     GameplayDifficulty difficulty;
-    std::optional<int> maxAttempts;
+    GameplayMode mode;
 };
 
 enum class GameplayOutcome
@@ -127,6 +137,7 @@ struct GameplayResult
     GameplayOutcome outcome;
     std::chrono::seconds gameDuration;
     int wrongAttempts;
+    GameplayMode mode;
 };
 
 struct GameScore

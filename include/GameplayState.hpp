@@ -18,7 +18,8 @@ private:
         Invalid,
         OutOfRange,
         TooSmall,
-        TooLarge
+        TooLarge,
+        Rerolled
     };
 
     struct Round
@@ -41,8 +42,17 @@ private:
 
     std::string selectStatusMessage(GuessStatus status);
     std::string constructAttemptsIndicatorText() const;
+    std::string constructAttemptsUntilRerollText() const;
 
     FrameTransition finish(GameplayOutcome outcome) const;
+
+    bool isNewGamePlusMode() const;
+    bool isChallengeMode() const;
+    int getMaxAttempts() const;
+    int getRerollInterval() const;
+    int getAttemptsUntilReroll() const;
+
+    void reroll();
 
 public:
     GameplayState(GameContext& context, GameplayOptions options);

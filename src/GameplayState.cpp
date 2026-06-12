@@ -1,4 +1,5 @@
 #include "GameplayState.hpp"
+#include "GameState.hpp"
 #include "GameTypes.hpp"
 #include "InputHandler.hpp"
 #include "Screen.hpp"
@@ -8,6 +9,8 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <variant>
+#include <format>
 
 
 std::chrono::seconds GameplayState::getElapsedTime() const
@@ -91,6 +94,9 @@ std::string GameplayState::selectStatusMessage(GuessStatus status)
 
     case TooLarge:
         return std::string{ this->selectRandomSmallerNumberPhrase() };
+
+    case Rerolled:
+        return "The secret number has been rerolled";
     }
 
     throw std::logic_error("Invalid GuessStatus value");
@@ -99,10 +105,17 @@ std::string GameplayState::selectStatusMessage(GuessStatus status)
 std::string GameplayState::constructAttemptsIndicatorText() const
 {
     std::string attemptsIndicatorText = "Attempt #" + std::to_string(this->round.wrongAttempts + 1);
-    if (this->options.maxAttempts)
-        attemptsIndicatorText += "/" + std::to_string(*this->options.maxAttempts);
+    if (this->isChallengeMode())
+        attemptsIndicatorText += "/" + std::to_string(this->getMaxAttempts());
 
     return attemptsIndicatorText;
+}
+
+std::string GameplayState::constructAttemptsUntilRerollText() const
+{
+    int attemptsLeft = this->getAttemptsUntilReroll();
+
+    return std::format("Reroll in {} attempt{}", attemptsLeft, attemptsLeft == 1 ? "" : "s");
 }
 
 FrameTransition GameplayState::finish(GameplayOutcome outcome) const
@@ -111,8 +124,64 @@ FrameTransition GameplayState::finish(GameplayOutcome outcome) const
         .difficulty = this->options.difficulty,
         .outcome = outcome,
         .gameDuration = this->getElapsedTime(),
-        .wrongAttempts = this->round.wrongAttempts
+        .wrongAttempts = this->round.wrongAttempts,
+        .mode = this->options.mode
     });
+}
+
+bool GameplayState::isNewGamePlusMode() const
+{
+    return std::holds_alternative<NewGamePlusMode>(this->options.mode);
+}
+
+bool GameplayState::isChallengeMode() const
+{
+    const auto* standardMode = std::get_if<StandardMode>(&this->options.mode);
+
+    return standardMode != nullptr && standardMode->maxAttempts.has_value();
+}
+
+int GameplayState::getMaxAttempts() const
+{
+    return std::get<StandardMode>(this->options.mode).maxAttempts.value();
+}
+
+int GameplayState::getRerollInterval() const
+{
+    using enum GameplayDifficulty;
+
+    switch (this->options.difficulty)
+    {
+    case Easy:
+        return 8;
+
+    case Medium:
+        return 7;
+
+    case Hard: 
+        return 6;
+
+    case Count:
+        break;
+    }
+
+    throw std::logic_error("Invalid GameplayDifficulty value");
+}
+
+int GameplayState::getAttemptsUntilReroll() const
+{
+    int interval = this->getRerollInterval();
+
+    return interval - this->round.wrongAttempts % interval;
+}
+
+void GameplayState::reroll()
+{
+    auto& targetNumber = this->round.targetNumber;
+    int previousTargetNumber = targetNumber;
+
+    while (previousTargetNumber == targetNumber)
+        targetNumber = this->generateRandomNumber();
 }
 
 GameplayState::GameplayState(GameContext& context, GameplayOptions options) :
@@ -134,7 +203,7 @@ FrameTransition GameplayState::handleEvent(const Event& event)
     auto guessedNumber = *guessedNumberOptional;
 
     auto randomNumberLimits = getRandomNumberLimits(this->options.difficulty);
-    if (guessedNumber < randomNumberLimits.min || guessedNumber > randomNumberLimits.max)
+    if (bool isNotInLimits = guessedNumber < randomNumberLimits.min || guessedNumber > randomNumberLimits.max)
     {
         this->statusMessage = this->selectStatusMessage(GuessStatus::OutOfRange);
 
@@ -144,20 +213,24 @@ FrameTransition GameplayState::handleEvent(const Event& event)
     if (guessedNumber == this->round.targetNumber)
         return this->finish(GameplayOutcome::Victory);
 
-    else
+    ++this->round.wrongAttempts;
+
+    if (bool isOutOfAttempts = this->isChallengeMode() && this->round.wrongAttempts >= this->getMaxAttempts())
+        return this->finish(GameplayOutcome::Defeat);
+
+    if (bool shouldReroll = this->isNewGamePlusMode() && this->round.wrongAttempts % this->getRerollInterval() == 0)
     {
-        ++this->round.wrongAttempts;
+        this->reroll();
+        this->statusMessage = this->selectStatusMessage(GuessStatus::Rerolled);
 
-        bool isChallengeMode = this->options.maxAttempts.has_value();
-        if (isChallengeMode && this->round.wrongAttempts >= *this->options.maxAttempts)
-            return this->finish(GameplayOutcome::Defeat);
-
-        if (guessedNumber < this->round.targetNumber)
-            this->statusMessage = this->selectStatusMessage(GuessStatus::TooSmall);
-
-        else
-            this->statusMessage = this->selectStatusMessage(GuessStatus::TooLarge);
+        return NoneTransition{};
     }
+
+    if (guessedNumber < this->round.targetNumber)
+        this->statusMessage = this->selectStatusMessage(GuessStatus::TooSmall);
+
+    else
+        this->statusMessage = this->selectStatusMessage(GuessStatus::TooLarge);
 
     return NoneTransition{};
 }
@@ -183,6 +256,13 @@ Screen GameplayState::getScreen() const
     screen.body.push_back(TextElement{
         .text = this->constructAttemptsIndicatorText()
     });
+
+    if (this->isNewGamePlusMode())
+    {
+        screen.body.push_back(TextElement{
+            .text = this->constructAttemptsUntilRerollText()
+        });
+    }
 
 #if !defined(NDEBUG)
     screen.body.push_back(TextElement{

@@ -40,7 +40,14 @@ Screen HallOfFameDisplayState::getScreen() const
 
     for (const auto& gameScore : this->getContext().hallOfFameScores.getGameScores(this->difficulty))
     {
-        auto text = std::format("{}: {} attempts in {}", gameScore.name, gameScore.attempts, gameScore.gameDuration);
+        auto text = std::format(
+            "{}: {} attempt{} in {}",
+            gameScore.name,
+            gameScore.attempts,
+            gameScore.attempts == 1 ? "" : "s",
+            gameScore.gameDuration
+        );
+
         screen.body.push_back(TextElement{ .text = std::move(text) });
     }
 
