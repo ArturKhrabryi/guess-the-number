@@ -6,7 +6,6 @@
 
 #include <cstddef>
 #include <format>
-#include <memory>
 #include <stdexcept>
 
 
@@ -163,7 +162,13 @@ FrameTransition OptionsSelectionState::handleReturn(std::any value)
         this->options.mode = *gameMode;
         
         if (std::holds_alternative<StandardMode>(*gameMode))
-            return PushStateTransition{ .nextState = this->makeState<ChallengeModeSelectionStep>() };
+        {
+            bool askChallengeMode = this->getContext().settings.askChallengeMode;
+            if (askChallengeMode)
+                return PushStateTransition{ .nextState = this->makeState<ChallengeModeSelectionStep>() };
+
+            return OptionsSelectionState::makeReturn(this->options);
+        }
 
         return OptionsSelectionState::makeReturn(this->options);
     }

@@ -5,6 +5,7 @@
 #include "PostGameState.hpp"
 #include "HallOfFameState.hpp"
 #include "GameplayState.hpp"
+#include "SettingsState.hpp"
 
 #include <any>
 #include <stdexcept>
@@ -26,6 +27,13 @@ MainMenuState::MainMenuState(GameContext& context) : GameState(context)
         },
         .isVisible = [this] {
             return !this->getContext().hallOfFameScores.isEmpty();
+        }
+    });
+
+    this->addMenuItem(MenuItem{
+        .text = "Settings",
+        .handler = [this] {
+            return PushStateTransition{ .nextState = this->makeState<SettingsState>() };
         }
     });
 

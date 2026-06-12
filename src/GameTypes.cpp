@@ -51,3 +51,9 @@ bool HallOfFameScores::isEmpty(GameplayDifficulty difficulty) const
 
     return this->scores[difficultyIndex].empty();
 }
+
+void HallOfFameScores::clear()
+{
+    for (auto& vec : this->scores)
+        vec.clear();
+}
