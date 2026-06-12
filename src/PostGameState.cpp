@@ -1,8 +1,10 @@
 #include "PostGameState.hpp"
 #include "GameState.hpp"
+#include "GameTypes.hpp"
 #include "Screen.hpp"
 
 #include <format>
+#include <variant>
 
 
 Screen PostGameState::getScreen() const
@@ -49,7 +51,8 @@ FrameTransition PostGameState::handleEvent(const Event& event)
     GameScore score{
         .name = event.value,
         .attempts = this->result.wrongAttempts + 1,
-        .gameDuration = this->result.gameDuration
+        .gameDuration = this->result.gameDuration,
+        .isNewGamePlus = std::holds_alternative<NewGamePlusMode>(this->result.mode)
     };
 
     this->getContext().hallOfFameScores.addGameScore(std::move(score), this->result.difficulty);

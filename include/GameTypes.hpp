@@ -145,6 +145,7 @@ struct GameScore
     std::string name;
     int attempts;
     std::chrono::seconds gameDuration;
+    bool isNewGamePlus;
 };
 
 using GameScores = std::vector<GameScore>;
