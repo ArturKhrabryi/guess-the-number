@@ -7,12 +7,10 @@
 #include "GameplayTypes.hpp"
 
 #include <string>
-#include <string_view>
-#include <vector>
 #include <any>
 
 
-class DifficultySelectionStep final : public GameState, public MenuScreenState, public Returns<GameplayDifficulty>
+class DifficultySelectionStep final : public MenuScreenState, public Returns<GameplayDifficulty>
 {
 private:
     struct DifficultyItem
@@ -21,38 +19,35 @@ private:
         std::string name;
     };
 
-    static DifficultyItem constructDifficultyItem(GameplayDifficulty difficulty);
-    static std::vector<DifficultyItem> constructDifficultyItems();
-
 protected:
-    virtual std::string_view getTitle() const override { return "Difficulty selection"; }
+    virtual std::string getTitle() const override;
 
 public:
     DifficultySelectionStep(GameContext& context);
     virtual Screen getScreen() const override;
 };
 
-class GameplayModeSelectionStep final : public GameState, public MenuScreenState, public Returns<GameplayMode>
+class GameplayModeSelectionStep final : public MenuScreenState, public Returns<GameplayMode>
 {
 protected:
-    virtual std::string_view getTitle() const override { return "Game mode selection"; }
+    virtual std::string getTitle() const override;
 
 public:
     GameplayModeSelectionStep(GameContext& context);
     virtual Screen getScreen() const override;
 };
 
-class ChallengeModeSelectionStep final : public GameState, public MenuScreenState, public Returns<bool>
+class ChallengeModeSelectionStep final : public MenuScreenState, public Returns<bool>
 {
 protected:
-    virtual std::string_view getTitle() const override { return "Enabling challenge mode"; }
+    virtual std::string getTitle() const override;
 
 public:
     ChallengeModeSelectionStep(GameContext& context);
     virtual Screen getScreen() const override;
 };
 
-class MaxAttemptsSelectionStep final : public GameState, public ScreenState, public Returns<int>
+class MaxAttemptsSelectionStep final : public GameState, public ScreenProvider, public Returns<int>
 {
 public:
     using GameState::GameState;

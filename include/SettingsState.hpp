@@ -2,17 +2,17 @@
 
 #include "GameState.hpp"
 #include "MenuScreenState.hpp"
+#include "Settings.hpp"
 #include "StateInterfaces.hpp"
 
 #include <string>
-#include <string_view>
 #include <any>
 
 
-class HallOfFameClearConfirmationStep final : public GameState, public MenuScreenState, public Returns<bool> 
+class HallOfFameClearConfirmationStep final : public MenuScreenState, public Returns<bool> 
 {
 protected:
-    virtual std::string_view getTitle() const override { return "Hall of fame deleteon confirmation"; }
+    virtual std::string getTitle() const override;
 
 public:
     HallOfFameClearConfirmationStep(GameContext& context);
@@ -20,16 +20,27 @@ public:
     virtual Screen getScreen() const override;
 };
 
-class SettingsState final : public GameState, public MenuScreenState, public ReturnHandler
+class LanguageSelectionState final : public MenuScreenState, public Returns<Language> 
+{
+protected:
+    virtual std::string getTitle() const override;
+
+public:
+    LanguageSelectionState(GameContext& context);
+
+    virtual Screen getScreen() const override;
+};
+
+class SettingsState final : public MenuScreenState, public ReturnHandler
 {
 private:
     std::string statusMessage;
 
-    void deleteHallOfFame();
+    void clearHallOfFame();
     void insertHeader(Screen& screen) const;
 
 protected:
-    virtual std::string_view getTitle() const override { return "Settings"; }
+    virtual std::string getTitle() const override;
 
 public:
     SettingsState(GameContext& context);

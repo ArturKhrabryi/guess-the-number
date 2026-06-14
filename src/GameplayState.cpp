@@ -3,6 +3,7 @@
 #include "InputHandler.hpp"
 #include "RandomGenerator.hpp"
 #include "Screen.hpp"
+#include "Translator.hpp"
 
 #include <array>
 #include <limits>
@@ -10,7 +11,6 @@
 #include <string>
 #include <string_view>
 #include <variant>
-#include <format>
 
 
 std::chrono::seconds GameplayState::getElapsedTime() const
@@ -81,22 +81,24 @@ std::string GameplayState::selectStatusMessage(GuessStatus status)
 {
     using enum GuessStatus;
 
+    const auto& translator = this->getContext().translator;
+
     switch (status)
     {
     case Invalid:
-        return "Please make a guess using a valid number";
+        return translator.translateString("Please make a guess using a valid number");
 
     case OutOfRange:
-        return "Do you really want to enter a number outside the difficulty's range?";
+        return translator.translateString("Do you really want to enter a number outside the difficulty's range?");
 
     case TooSmall:
-        return std::string{ this->selectRandomGreaterNumberPhrase() };
+        return translator.translateString(this->selectRandomGreaterNumberPhrase());
 
     case TooLarge:
-        return std::string{ this->selectRandomSmallerNumberPhrase() };
+        return translator.translateString(this->selectRandomSmallerNumberPhrase());
 
     case Rerolled:
-        return "The secret number has been rerolled";
+        return translator.translateString("The secret number has been rerolled");
     }
 
     throw std::logic_error("Invalid GuessStatus value");
@@ -104,18 +106,24 @@ std::string GameplayState::selectStatusMessage(GuessStatus status)
 
 std::string GameplayState::constructAttemptsIndicatorText() const
 {
-    std::string attemptsIndicatorText = "Attempt #" + std::to_string(this->round.wrongAttempts + 1);
-    if (this->isChallengeMode())
-        attemptsIndicatorText += "/" + std::to_string(this->getMaxAttempts());
+    const auto& translator = this->getContext().translator;
+    const auto attempt = this->round.wrongAttempts + 1;
 
-    return attemptsIndicatorText;
+    if (!this->isChallengeMode())
+        return translator.format("Attempt #{}", attempt);
+
+    return translator.format("Attempt #{}/{}", attempt, this->getMaxAttempts());
 }
 
 std::string GameplayState::constructAttemptsUntilRerollText() const
 {
-    int attemptsLeft = this->getAttemptsUntilReroll();
+    const auto& translator = this->getContext().translator;
+    const int attemptsLeft = this->getAttemptsUntilReroll();
 
-    return std::format("Reroll in {} attempt{}", attemptsLeft, attemptsLeft == 1 ? "" : "s");
+    if (attemptsLeft == 1)
+        return translator.translateString("You have one last try before the reroll");
+
+    return translator.format("Reroll in {} attempts", attemptsLeft);
 }
 
 FrameTransition GameplayState::finish(GameplayOutcome outcome) const
@@ -237,13 +245,15 @@ FrameTransition GameplayState::handleEvent(const Event& event)
 
 Screen GameplayState::getScreen() const
 {
+    const auto& translator = this->getContext().translator;
+
     Screen screen{
-        "Gameplay",
-        "Try to guess the number:"
+        translator.translateString("Gameplay"),
+        translator.translateString("Try to guess the number")
     };
 
     screen.header.push_back(TextElement{
-        .text = "Difficulty: " + std::string{ toString(this->options.difficulty) }
+        .text = translator.format("Difficulty: {}", toString(this->options.difficulty))
     });
 
     if (!this->statusMessage.empty())
@@ -266,7 +276,7 @@ Screen GameplayState::getScreen() const
 
 #if !defined(NDEBUG)
     screen.body.push_back(TextElement{
-        .text = std::string("Random number: ") + std::to_string(this->round.targetNumber),
+        .text = translator.format("Random number: {}", this->round.targetNumber),
         .role = TextRole::Debug
     });
 #endif

@@ -6,22 +6,21 @@
 #include "MenuScreenState.hpp"
 
 #include <any>
-#include <string_view>
 
 
-class HallOfFameDifficultySelectionState final : public GameState, public MenuScreenState, public Returns<GameplayDifficulty>
+class HallOfFameDifficultySelectionState final : public MenuScreenState, public Returns<GameplayDifficulty>
 {
 private:
     bool isVisible(GameplayDifficulty difficulty) const;
 
 protected:
-    virtual std::string_view getTitle() const override { return "Choose the difficulty to view TOP5"; }
+    virtual std::string getTitle() const override;
 
 public:
     HallOfFameDifficultySelectionState(GameContext& context);
 };
 
-class HallOfFameDisplayState final : public GameState, public ScreenState
+class HallOfFameDisplayState final : public GameState, public ScreenProvider
 {
 private:
     GameplayDifficulty difficulty;

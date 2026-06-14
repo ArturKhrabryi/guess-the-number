@@ -11,10 +11,10 @@
 struct Screen;
 struct Event;
 
-class ScreenState
+class ScreenProvider
 {
 public:
-    virtual ~ScreenState() = default;
+    virtual ~ScreenProvider() = default;
     virtual Screen getScreen() const = 0;
     virtual FrameTransition handleEvent(const Event& event) = 0;
 };

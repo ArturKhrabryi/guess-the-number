@@ -2,11 +2,11 @@
 #include "GameContext.hpp"
 #include "HallOfFameScores.hpp"
 #include "Screen.hpp"
+#include "Translator.hpp"
 
 #include <string>
 #include <vector>
 #include <cstddef>
-#include <format>
 #include <stdexcept>
 
 
@@ -15,14 +15,23 @@ bool HallOfFameDifficultySelectionState::isVisible(GameplayDifficulty difficulty
     return !this->getContext().hallOfFameScores.isEmpty(difficulty);
 }
 
-HallOfFameDifficultySelectionState::HallOfFameDifficultySelectionState(GameContext& context) : GameState(context)
+std::string HallOfFameDifficultySelectionState::getTitle() const
+{
+    return this->getContext().translator.translateString("Choose the difficulty to view TOP5");
+}
+
+HallOfFameDifficultySelectionState::HallOfFameDifficultySelectionState(GameContext& context) : MenuScreenState(context)
 {
     for (std::size_t difficultyIndex = 0; difficultyIndex < getDifficultyCount(); ++difficultyIndex)
     {
         const auto difficulty = difficultyFromIndex(difficultyIndex);
 
         this->addMenuItem(MenuItem{
-            .text = std::string{ toString(difficulty) },
+            .textProvider = [this, difficulty] {
+                const auto& translator = this->getContext().translator;
+
+                return translator.translateString(toString(difficulty));
+            },
             .handler = [difficulty] { return HallOfFameDifficultySelectionState::makeReturn(difficulty); },
             .isVisible = [this, difficulty] { return this->isVisible(difficulty); }
         });
@@ -31,23 +40,38 @@ HallOfFameDifficultySelectionState::HallOfFameDifficultySelectionState(GameConte
 
 Screen HallOfFameDisplayState::getScreen() const
 {
-    auto title = std::format("TOP5 scores for {} difficulty", toString(this->difficulty));
+    const auto& translator = this->getContext().translator;
+
+    auto title = translator.format(
+        "TOP5 scores for {} difficulty",
+        toString(this->difficulty)
+    );
 
     Screen screen{
         std::move(title),
-        "Enter any input to return to the main menu"
+        translator.translateString("Enter any input to return to the main menu")
     };
 
     for (const auto& gameScore : this->getContext().hallOfFameScores.getGameScores(this->difficulty))
     {
-        auto text = std::format(
-            "{}: {} attempt{} in {} {}",
-            gameScore.name,
-            gameScore.attempts,
-            gameScore.attempts == 1 ? "" : "s",
-            gameScore.gameDuration,
-            gameScore.isNewGamePlus ? "NG+" : ""
-        );
+        const auto attemptsText = gameScore.attempts == 1 ?
+            translator.translateString("1 attempt") :
+            translator.format("{} attempts", gameScore.attempts);
+
+        auto text = gameScore.isNewGamePlus ?
+            translator.format(
+                "{}: {} in {} {}",
+                translator.notTranslate(gameScore.name),
+                translator.notTranslate(attemptsText),
+                gameScore.gameDuration,
+                translator.notTranslate("NG+")
+            ) :
+            translator.format(
+                "{}: {} in {}",
+                translator.notTranslate(gameScore.name),
+                translator.notTranslate(attemptsText),
+                gameScore.gameDuration        
+            );
 
         screen.body.push_back(TextElement{ .text = std::move(text) });
     }

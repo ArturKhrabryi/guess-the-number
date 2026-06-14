@@ -4,7 +4,8 @@
 #include "GameplayTypes.hpp"
 #include "StateInterfaces.hpp"
 
-class PostGameState final : public GameState, public ScreenState
+
+class PostGameState final : public GameState, public ScreenProvider
 {
 private:
     GameplayResult result;

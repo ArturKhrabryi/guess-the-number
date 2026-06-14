@@ -3,14 +3,16 @@
 #include "GameContext.hpp"
 #include "HallOfFameScores.hpp"
 #include "Screen.hpp"
+#include "Translator.hpp"
 
-#include <format>
 #include <variant>
 
 
 Screen PostGameState::getScreen() const
 {
-    auto title = std::string { toString(this->result.outcome) };
+    const auto& translator = this->getContext().translator;
+
+    auto title = translator.translateString(toString(this->result.outcome));
     std::string footer;
     TextElement attemptsMessageBox;
 
@@ -18,25 +20,25 @@ Screen PostGameState::getScreen() const
     if (isVictory)
     {
         if (this->result.wrongAttempts == 0)
-            attemptsMessageBox.text = "Wow! You guessed the number on your first try";
+            attemptsMessageBox.text = translator.translateString("Wow! You guessed the number on your first try");
 
         else if (this->result.wrongAttempts == 1)
-            attemptsMessageBox.text = "You made a mistake just once";
+            attemptsMessageBox.text = translator.translateString("You made a mistake just once");
 
         else
-            attemptsMessageBox.text = "You made " + std::to_string(this->result.wrongAttempts) + " mistakes in total";
+            attemptsMessageBox.text = translator.format("You made {} mistakes in total", this->result.wrongAttempts);
 
-        footer = "Enter your name. You will return to the main menu";
+        footer = translator.translateString("Enter your name. You will return to the main menu");
     }
     else
     {
-        attemptsMessageBox.text = "You ran out of attempts";
-        footer = "Enter any input to return to the main menu";
+        attemptsMessageBox.text = translator.translateString("You ran out of attempts");
+        footer = translator.translateString("Enter any input to return to the main menu");
     }
 
     Screen screen(std::move(title), std::move(footer));
     screen.header.push_back(std::move(attemptsMessageBox));
-    screen.header.push_back(TextElement{ .text = std::format("The game took {}", this->result.gameDuration) });
+    screen.header.push_back(TextElement{ .text = translator.format("The game took {}", this->result.gameDuration) });
 
     return screen;
 }

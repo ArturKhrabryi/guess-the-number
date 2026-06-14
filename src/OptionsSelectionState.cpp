@@ -1,47 +1,33 @@
 #include "OptionsSelectionState.hpp"
 #include "GameContext.hpp"
+#include "GameplayDifficulty.hpp"
 #include "InputHandler.hpp"
 #include "Screen.hpp"
 #include "Settings.hpp"
+#include "Translator.hpp"
 
 #include <cstddef>
-#include <format>
 #include <stdexcept>
 
 
-auto DifficultySelectionStep::constructDifficultyItem(GameplayDifficulty difficulty) -> DifficultyItem
+std::string DifficultySelectionStep::getTitle() const
 {
-    const auto name = toString(difficulty);
-    const auto limits = getRandomNumberLimits(difficulty);
-
-    return {
-        .difficulty = difficulty,
-        .name = std::format("{} ({}-{})", name, limits.min, limits.max)
-    };
+    return this->getContext().translator.translateString("Difficulty selection");
 }
 
-auto DifficultySelectionStep::constructDifficultyItems() -> std::vector<DifficultyItem>
+DifficultySelectionStep::DifficultySelectionStep(GameContext& context) : MenuScreenState(context)
 {
-    std::vector<DifficultyItem> res;
-    constexpr auto size = getDifficultyCount();
-    res.reserve(size);
-    for (std::size_t i = 0; i < size; ++i)
+    for (std::size_t i = 0; i < getDifficultyCount(); ++i)
     {
-        GameplayDifficulty difficulty = difficultyFromIndex(i);
-        res.push_back(constructDifficultyItem(difficulty));
-    }
+        const GameplayDifficulty difficulty = difficultyFromIndex(i);
 
-    return res;
-}
-
-DifficultySelectionStep::DifficultySelectionStep(GameContext& context) : GameState(context)
-{
-    auto difficultyItems = this->constructDifficultyItems();
-    for (auto& difficultyItem : difficultyItems)
-    {
         this->addMenuItem(MenuItem{
-            .text = std::move(difficultyItem.name),
-            .handler = [difficulty = difficultyItem.difficulty] {
+            .textProvider = [this, difficulty] {
+                const auto limits = getRandomNumberLimits(difficulty);
+
+                return this->getContext().translator.format("{} ({}-{})", toString(difficulty), limits.min, limits.max);
+            },
+            .handler = [difficulty] {
                 return DifficultySelectionStep::makeReturn(difficulty);
             }
         });
@@ -53,23 +39,34 @@ Screen DifficultySelectionStep::getScreen() const
     auto screen = MenuScreenState::getScreen();
 
     screen.header.push_back(TextElement{
-        .text = "What difficulty would you like?"
+        .text = this->getContext().translator.translateString("What difficulty would you like?")
     });
 
     return screen;
 }
 
-GameplayModeSelectionStep::GameplayModeSelectionStep(GameContext& context) : GameState(context)
+std::string GameplayModeSelectionStep::getTitle() const
 {
+    return this->getContext().translator.translateString("Game mode selection");
+}
+
+GameplayModeSelectionStep::GameplayModeSelectionStep(GameContext& context) : MenuScreenState(context)
+{
+    const auto& translator = this->getContext().translator;
+
     this->addMenuItem(MenuItem{
-        .text = "Standard mode",
+        .textProvider = [&translator] {
+            return translator.translateString("Standard mode");
+        },
         .handler = [] {
             return GameplayModeSelectionStep::makeReturn(GameplayMode{ StandardMode{} });
         }
     });
 
     this->addMenuItem(MenuItem{
-        .text = "New game plus",
+        .textProvider = [&translator] {
+            return translator.translateString("New game plus");
+        },
         .handler = [] {
             return GameplayModeSelectionStep::makeReturn(GameplayMode{ NewGamePlusMode{} });
         }
@@ -81,23 +78,34 @@ Screen GameplayModeSelectionStep::getScreen() const
     auto screen = MenuScreenState::getScreen();
 
     screen.header.push_back(TextElement{
-        .text = "Which game mode do you want to play?"
+        .text = this->getContext().translator.translateString("Which game mode do you want to play?")
     });
 
     return screen;
 }
 
-ChallengeModeSelectionStep::ChallengeModeSelectionStep(GameContext& context) : GameState(context)
+std::string ChallengeModeSelectionStep::getTitle() const
 {
+    return this->getContext().translator.translateString("Enabling challenge mode");
+}
+
+ChallengeModeSelectionStep::ChallengeModeSelectionStep(GameContext& context) : MenuScreenState(context)
+{
+    const auto& translator = this->getContext().translator;
+
     this->addMenuItem(MenuItem{
-        .text = "No",
+        .textProvider = [&translator] {
+            return translator.translateString("No");
+        },
         .handler = [] {
             return ChallengeModeSelectionStep::makeReturn(false);
         }
     });
 
     this->addMenuItem(MenuItem{
-        .text = "Yes",
+        .textProvider = [&translator] {
+            return translator.translateString("Yes");
+        },
         .handler = [] {
             return ChallengeModeSelectionStep::makeReturn(true);
         }
@@ -109,7 +117,7 @@ Screen ChallengeModeSelectionStep::getScreen() const
     auto screen = MenuScreenState::getScreen();
 
     screen.header.push_back(TextElement{
-        .text = "Would you like to enable challenge mode?"
+        .text = this->getContext().translator.translateString("Would you like to enable challenge mode?")
     });
 
     return screen;
@@ -117,13 +125,15 @@ Screen ChallengeModeSelectionStep::getScreen() const
 
 Screen MaxAttemptsSelectionStep::getScreen() const
 {
+    const auto& translator = this->getContext().translator;
+
     Screen screen{
-        "Attempts limit selection",
-        "Attempts limit:"
+        translator.translateString("Attempts limit selection"),
+        translator.translateString("Attempts limit:")
     };
 
     screen.header.push_back(TextElement{
-        .text = "How many tries do you think it will take you to guess?"
+        .text = translator.translateString("How many tries do you think it will take you to guess?")
     });
 
     return screen;

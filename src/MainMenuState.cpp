@@ -6,22 +6,35 @@
 #include "HallOfFameState.hpp"
 #include "GameplayState.hpp"
 #include "SettingsState.hpp"
+#include "Translator.hpp"
 
 #include <any>
 #include <stdexcept>
+#include <string>
 
 
-MainMenuState::MainMenuState(GameContext& context) : GameState(context)
+std::string MainMenuState::getTitle() const
 {
+    return this->getContext().translator.translateString("Main menu");
+} 
+
+MainMenuState::MainMenuState(GameContext& context) : MenuScreenState(context)
+{
+    const auto& translator = this->getContext().translator;
+
     this->addMenuItem(MenuItem{
-        .text = "Start new game",
+        .textProvider = [&translator] {
+            return translator.translateString("Start new game");
+        },
         .handler = [this] {
             return PushStateTransition{ .nextState = this->makeState<OptionsSelectionState>() };
         }
     });
 
     this->addMenuItem(MenuItem{
-        .text = "Hall of fame",
+        .textProvider = [&translator] {
+            return translator.translateString("Hall of fame");
+        },
         .handler = [this] {
             return PushStateTransition{ .nextState = this->makeState<HallOfFameState>() };
         },
@@ -31,14 +44,18 @@ MainMenuState::MainMenuState(GameContext& context) : GameState(context)
     });
 
     this->addMenuItem(MenuItem{
-        .text = "Settings",
+        .textProvider = [&translator] {
+            return translator.translateString("Settings");
+        },
         .handler = [this] {
             return PushStateTransition{ .nextState = this->makeState<SettingsState>() };
         }
     });
 
     this->addMenuItem(MenuItem{
-        .text = "Quit the game",
+        .textProvider = [&translator] {
+            return translator.translateString("Quit the game");
+        },
         .handler = [] {
             return QuitGameTransition{};
         }

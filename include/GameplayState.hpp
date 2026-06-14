@@ -9,7 +9,7 @@
 #include <string_view>
 
 
-class GameplayState final : public GameState, public ScreenState, public Returns<GameplayResult>
+class GameplayState final : public GameState, public ScreenProvider, public Returns<GameplayResult>
 {
 private:
     using Clock = std::chrono::steady_clock;

@@ -1,7 +1,9 @@
 #include "MenuScreenState.hpp"
 
+#include "GameContext.hpp"
 #include "Screen.hpp"
 #include "InputHandler.hpp"
+#include "Translator.hpp"
 
 #include <vector>
 #include <string>
@@ -9,21 +11,26 @@
 #include <utility>
 
 
+std::string MenuScreenState::getFooter() const
+{
+    return this->getContext().translator.translateString("Choose an option");
+}
+
 Screen MenuScreenState::getScreen() const
 {
     Screen screen{
-        std::string{ this->getTitle() },
-        std::string{ this->getFooter() }
+        this->getTitle(),
+        this->getFooter()
     };
 
-    std::vector<std::string> textItems;
+    std::vector<std::string> menuTextElements;
     for (const auto& item : this->menuItems)
     {
         if (item.isVisible())
-            textItems.push_back(item.text);
+            menuTextElements.push_back(item.textProvider());
     }
 
-    screen.body.push_back(MenuElement{ .items = std::move(textItems) });
+    screen.body.push_back(MenuElement{ .items = std::move(menuTextElements) });
 
     return screen;
 }

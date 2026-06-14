@@ -9,6 +9,7 @@
 #include "Settings.hpp"
 #include "HallOfFameScores.hpp"
 #include "RandomGenerator.hpp"
+#include "Translator.hpp"
 #include "GameContext.hpp"
 #include "Renderer.hpp"
 
@@ -21,11 +22,13 @@ private:
     Settings settings{};
     HallOfFameScores hallOfFameScores{};
     RandomGenerator randomGenerator{};
+    Translator translator{ settings };
 
     GameContext context{
         settings,
         hallOfFameScores,
-        randomGenerator
+        randomGenerator,
+        translator
     };
 
     FramesStack frames;

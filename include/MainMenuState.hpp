@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string_view>
+#include <string>
 #include <any>
 
 #include "GameState.hpp"
@@ -8,10 +8,10 @@
 #include "MenuScreenState.hpp"
 
 
-class MainMenuState final : public GameState, public MenuScreenState, public ReturnHandler
+class MainMenuState final : public MenuScreenState, public ReturnHandler
 {
 protected:
-    virtual std::string_view getTitle() const override { return "Main menu"; } 
+    virtual std::string getTitle() const override;
 
 public:
     MainMenuState(GameContext& context);

@@ -5,7 +5,7 @@
 #include <memory>
 
 
-class ScreenState;
+class ScreenProvider;
 class EnterHandler;
 class ReturnHandler;
 
@@ -20,7 +20,7 @@ public:
     StateFrame(StateFrame&&) = default;
     StateFrame& operator=(StateFrame&&) = default;
 
-    ScreenState* screenState = nullptr;
+    ScreenProvider* screenState = nullptr;
     EnterHandler* enterHandler = nullptr;
     ReturnHandler* returnHandler = nullptr;
 };
