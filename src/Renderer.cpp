@@ -4,9 +4,42 @@
 
 #include <iostream>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+namespace
+{
+#ifdef _WIN32
+    void enableVirtualTerminal(HANDLE handle)
+    {
+        if (handle == nullptr || handle == INVALID_HANDLE_VALUE)
+            return;
+
+        DWORD mode = 0;
+        if (!GetConsoleMode(handle, &mode))
+            return;
+
+        mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+        SetConsoleMode(handle, mode);
+    }
+
+    void initConsole()
+    {
+        SetConsoleOutputCP(CP_UTF8);
+        SetConsoleCP(CP_UTF8);
+
+        enableVirtualTerminal(GetStdHandle(STD_OUTPUT_HANDLE));
+    }
+#endif
+}
 
 Renderer::Renderer()
 {
+#ifdef _WIN32
+    initConsole();
+#endif
+
     enterAlternateScreen();
     clear();
 }
